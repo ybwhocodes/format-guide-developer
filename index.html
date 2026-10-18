@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Format Library</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  <style>
+    :root { --bg:#09090b; --panel:#111113; --panel-2:#18181b; --line:#27272a; --text:#fafafa; --muted:#a1a1aa; --accent:#e4e4e7; --blue:#93c5fd; --radius:8px; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:14px/1.6 ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    button,input { font:inherit; }
+    button { cursor:pointer; }
+    .shell { min-height:100vh; display:grid; grid-template-columns:280px 1fr; }
+    .sidebar { border-right:1px solid var(--line); background:#0d0d0f; padding:22px 16px; overflow:auto; }
+    .brand { display:flex; align-items:center; gap:10px; margin:0 8px 24px; font-weight:650; letter-spacing:-.02em; }
+    .mark { width:28px; height:28px; display:grid; place-items:center; border:1px solid #3f3f46; border-radius:6px; background:#fafafa; color:#09090b; font-weight:800; }
+    .eyebrow { margin:0 8px 7px; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.12em; }
+    .search { width:100%; margin-bottom:18px; padding:9px 11px; color:var(--text); border:1px solid var(--line); border-radius:6px; outline:none; background:var(--panel); }
+    .search:focus { border-color:#71717a; box-shadow:0 0 0 2px #27272a; }
+     .tree { display:grid; gap:2px; }
+     .tree-group { display:grid; gap:2px; }
+     .tree-children { display:grid; gap:2px; margin-left:10px; padding-left:8px; border-left:1px solid var(--line); }
+     .tree-children[hidden] { display:none; }
+     .tree button { width:100%; min-height:36px; padding:7px 9px; border:0; border-radius:5px; background:transparent; color:var(--muted); text-align:left; font-size:13px; }
+     .tree button:hover,.tree button.active { background:var(--panel-2); color:var(--text); }
+     .tree button.folder { display:flex; align-items:center; gap:7px; color:#d4d4d8; font-weight:600; }
+     .tree button.folder::before { content:'›'; width:12px; color:var(--muted); font-size:18px; line-height:1; transform:rotate(0deg); transition:transform .15s ease; }
+     .tree button.folder.open::before { transform:rotate(90deg); }
+     .tree button.file { padding-left:9px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .content { min-width:0; }
+    .topbar { height:65px; display:flex; align-items:center; justify-content:space-between; gap:14px; padding:0 36px; border-bottom:1px solid var(--line); }
+    .crumb { color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .badge { padding:3px 8px; border:1px solid var(--line); border-radius:999px; color:var(--muted); font-size:12px; white-space:nowrap; }
+    main { max-width:920px; padding:52px 42px 80px; margin:0 auto; }
+    .empty { min-height:65vh; display:grid; place-items:center; color:var(--muted); text-align:center; }
+    .markdown h1,.markdown h2,.markdown h3,.markdown h4 { line-height:1.2; letter-spacing:-.035em; }
+    .markdown h1 { margin:0 0 14px; font-size:38px; }
+    .markdown h2 { margin:40px 0 14px; padding-bottom:8px; border-bottom:1px solid var(--line); font-size:25px; }
+    .markdown h3 { margin-top:28px; font-size:19px; }
+    .markdown p,.markdown ul,.markdown ol { color:#d4d4d8; }
+    .markdown a { color:var(--blue); }
+    .markdown blockquote { margin:22px 0; padding:12px 16px; border-left:3px solid #52525b; background:var(--panel); color:var(--muted); }
+    .markdown code { padding:2px 5px; border:1px solid var(--line); border-radius:4px; background:var(--panel-2); font:12px ui-monospace,SFMono-Regular,Menlo,monospace; }
+    .markdown pre { overflow:auto; padding:16px; border:1px solid var(--line); border-radius:var(--radius); background:#050506; }
+    .markdown pre code { padding:0; border:0; background:transparent; color:#e4e4e7; }
+    .markdown table { width:100%; margin:20px 0; border-collapse:collapse; overflow:hidden; border:1px solid var(--line); border-radius:var(--radius); }
+    .markdown th,.markdown td { padding:9px 12px; border:1px solid var(--line); text-align:left; }
+    .markdown th { background:var(--panel-2); color:var(--text); }
+    .markdown hr { border:0; border-top:1px solid var(--line); margin:32px 0; }
+    .markdown input[type=checkbox] { accent-color:#fafafa; }
+    @media (max-width:760px) { .shell { display:block; } .sidebar { max-height:42vh; border-right:0; border-bottom:1px solid var(--line); } .topbar { padding:0 18px; } main { padding:34px 20px 60px; } .markdown h1 { font-size:30px; } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand"><span class="mark">F</span><span>Format Library</span></div>
+      <p class="eyebrow">Dokumen</p>
+      <input id="search" class="search" type="search" placeholder="Cari dokumen..." aria-label="Cari dokumen">
+      <nav id="tree" class="tree" aria-label="Daftar dokumen"></nav>
+    </aside>
+    <section class="content">
+      <header class="topbar"><span id="crumb" class="crumb">Format Library</span><span id="count" class="badge">0 dokumen</span></header>
+      <main><article id="article" class="markdown"><div class="empty">Pilih dokumen dari sidebar.</div></article></main>
+    </section>
+  </div>
+  <script>
+    const files = [
+      'FORMAT-GUIDE.md',
+      'Frontend/README.md', 'Frontend/React/frontend-react.js-typescript-clean-code-standards.md', 'Frontend/React/frontend-react.js-typescript-repository-architecture.md', 'Frontend/Vue/vue-typescript-clean-code-standards.md', 'Frontend/Vue/vue-typescript-repository-architecture.md',
+      'Database/README.md', 'Database/Mysql/mysql-database-standard.md', 'Database/Mysql/mysql-lms-naming-and-schema-standard.md', 'Database/PostgreSQL/postgresql-database-standard.md', 'Database/PostgreSQL/postgresql-lms-naming-and-schema-standard.md', 'Database/Redis/redis-database-standard.md', 'Database/Supabase/supabase-database-standard.md',
+      'Backend/universal-api-contract.md',
+      'Backend/Elysia/LayeredArchitecture/pattern-repository-package-by-layer.md', 'Backend/Elysia/LayeredArchitecture/unit-testing.md', 'Backend/Elysia/LayeredArchitecture/migration-seeder.md', 'Backend/Elysia/LayeredArchitecture/documentation-api-ui.md', 'Backend/Elysia/LayeredArchitecture/standart-orm.md', 'Backend/Elysia/LayeredArchitecture/standart-auth.md', 'Backend/Elysia/LayeredArchitecture/clean-code.md', 'Backend/Elysia/LayeredArchitecture/runtime-standart.md',
+      'Backend/Elysia/ModularArchitecture/unit-testing.md', 'Backend/Elysia/ModularArchitecture/migration-seeder.md', 'Backend/Elysia/ModularArchitecture/documentation-api-ui.md', 'Backend/Elysia/ModularArchitecture/standart-orm.md', 'Backend/Elysia/ModularArchitecture/standart-auth.md', 'Backend/Elysia/ModularArchitecture/pattern-repository-package-by-feature.md', 'Backend/Elysia/ModularArchitecture/clean-code.md', 'Backend/Elysia/ModularArchitecture/runtime-standart.md',
+'Backend/Express/LayeredArchitecture/pattern-repository-package-by-layer.md', 'Backend/Express/LayeredArchitecture/unit-testing.md', 'Backend/Express/LayeredArchitecture/migration-seeder.md', 'Backend/Express/LayeredArchitecture/documentation-api-ui.md', 'Backend/Express/LayeredArchitecture/standart-orm.md', 'Backend/Express/LayeredArchitecture/standart-auth.md', 'Backend/Express/LayeredArchitecture/clean-code.md', 'Backend/Express/LayeredArchitecture/runtime-standart.md', 'Backend/Express/ModularArchitecture/unit-testing.md', 'Backend/Express/ModularArchitecture/migration-seeder.md', 'Backend/Express/ModularArchitecture/documentation-api-ui.md', 'Backend/Express/ModularArchitecture/standart-orm.md', 'Backend/Express/ModularArchitecture/standart-auth.md', 'Backend/Express/ModularArchitecture/pattern-repository-package-by-feature.md', 'Backend/Express/ModularArchitecture/clean-code.md', 'Backend/Express/ModularArchitecture/runtime-standart.md',
+      'Backend/Hono/LayeredArchitecture/pattern-repository-package-by-layer.md', 'Backend/Hono/LayeredArchitecture/unit-testing.md', 'Backend/Hono/LayeredArchitecture/migration-seeder.md', 'Backend/Hono/LayeredArchitecture/documentation-api-ui.md', 'Backend/Hono/LayeredArchitecture/standart-orm.md', 'Backend/Hono/LayeredArchitecture/standart-auth.md', 'Backend/Hono/LayeredArchitecture/clean-code.md', 'Backend/Hono/LayeredArchitecture/runtime-standart.md', 'Backend/Hono/ModularArchitecture/unit-testing.md', 'Backend/Hono/ModularArchitecture/migration-seeder.md', 'Backend/Hono/ModularArchitecture/documentation-api-ui.md', 'Backend/Hono/ModularArchitecture/standart-orm.md', 'Backend/Hono/ModularArchitecture/standart-auth.md', 'Backend/Hono/ModularArchitecture/pattern-repository-package-by-feature.md', 'Backend/Hono/ModularArchitecture/clean-code.md', 'Backend/Hono/ModularArchitecture/runtime-standart.md',
+      'Backend/Laravel/LayeredArchitecture/pattern-repository-package-by-layer.md', 'Backend/Laravel/LayeredArchitecture/unit-testing.md', 'Backend/Laravel/LayeredArchitecture/migration-seeder.md', 'Backend/Laravel/LayeredArchitecture/documentation-api-ui.md', 'Backend/Laravel/LayeredArchitecture/standart-orm.md', 'Backend/Laravel/LayeredArchitecture/standart-auth.md', 'Backend/Laravel/LayeredArchitecture/clean-code.md', 'Backend/Laravel/ModularArchitecture/unit-testing.md', 'Backend/Laravel/ModularArchitecture/migration-seeder.md', 'Backend/Laravel/ModularArchitecture/documentation-api-ui.md', 'Backend/Laravel/ModularArchitecture/standart-orm.md', 'Backend/Laravel/ModularArchitecture/standart-auth.md', 'Backend/Laravel/ModularArchitecture/pattern-repository-package-by-feature.md', 'Backend/Laravel/ModularArchitecture/clean-code.md'
+    ];
+    const tree = document.querySelector('#tree'), article = document.querySelector('#article'), search = document.querySelector('#search');
+     const label = path => path.replace(/\.md$/, '').split('/').pop().replace(/-/g,' ');
+     const title = value => value.replace(/([a-z])([A-Z])/g,'$1 $2').replace(/-/g,' ').replace(/\b\w/g, character => character.toUpperCase());
+      function renderTree(query='') {
+        tree.innerHTML='';
+        const matches = files.filter(file => file.toLowerCase().includes(query.toLowerCase()));
+        const root = {};
+        matches.forEach(file => {
+          file.split('/').reduce((node, part, index, parts) => {
+            const isFile = index === parts.length - 1;
+            node[part] ??= isFile ? { __file: file } : {};
+            return node[part];
+          }, root);
+        });
+        const renderNode = (node, container, depth=0) => {
+          Object.entries(node).sort(([a, av], [b, bv]) => (av.__file ? 1 : 0) - (bv.__file ? 1 : 0) || a.localeCompare(b)).forEach(([name, value]) => {
+            if (value.__file) {
+              const button = document.createElement('button');
+              button.className = 'file';
+              button.textContent = label(value.__file);
+              button.title = value.__file;
+              button.onclick = () => openFile(value.__file, button);
+              container.append(button);
+              return;
+            }
+            const group = document.createElement('div');
+            group.className = 'tree-group';
+            const folder = document.createElement('button');
+            folder.className = 'folder';
+            folder.textContent = title(name);
+             folder.title = name;
+             folder.type = 'button';
+             folder.setAttribute('aria-expanded', 'false');
+             const children = document.createElement('div');
+             children.className = 'tree-children';
+             children.hidden = true;
+             folder.onclick = () => {
+               const isHidden = children.hidden;
+               children.hidden = !isHidden;
+               folder.classList.toggle('open', isHidden);
+               folder.setAttribute('aria-expanded', String(isHidden));
+             };
+            group.append(folder, children);
+            container.append(group);
+            renderNode(value, children, depth + 1);
+             if (query) { children.hidden = false; folder.classList.add('open'); folder.setAttribute('aria-expanded', 'true'); }
+             else {
+               const open = depth === 0;
+               children.hidden = !open;
+               folder.classList.toggle('open', open);
+               folder.setAttribute('aria-expanded', String(open));
+             }
+          });
+        };
+        renderNode(root, tree);
+        document.querySelector('#count').textContent = `${matches.length} dokumen`;
+      }
+     async function openFile(file, button) {
+       try {
+         const response = await fetch(new URL(file, document.baseURI));
+         if (!response.ok) throw new Error(`HTTP ${response.status}`);
+         const markdown = await response.text();
+         article.innerHTML = DOMPurify.sanitize(marked.parse(markdown));
+         document.querySelector('#crumb').textContent = file;
+         document.querySelectorAll('.tree button').forEach(item => item.classList.remove('active'));
+         button?.classList.add('active');
+         history.replaceState(null, '', `#${encodeURIComponent(file)}`);
+       } catch (error) {
+         const message = location.protocol === 'file:'
+           ? 'Preview siap untuk GitHub Pages. Buka halaman melalui URL GitHub Pages agar file markdown dapat dimuat.'
+           : `Dokumen tidak dapat dimuat (${error.message}). Pastikan file ikut dipublish ke repository.`;
+         article.innerHTML = `<div class="empty">${message}</div>`;
+       }
+     }
+    search.oninput=event=>renderTree(event.target.value); renderTree();
+    const initial=decodeURIComponent(location.hash.slice(1)); if(files.includes(initial)) openFile(initial);
+  </script>
+</body>
+</html>
