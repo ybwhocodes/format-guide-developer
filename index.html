@@ -68,10 +68,10 @@
   </div>
   <script>
     const files = [
-      'FORMAT-GUIDE.md',
-      'Frontend/README.md', 'Frontend/React/frontend-react.js-typescript-clean-code-standards.md', 'Frontend/React/frontend-react.js-typescript-repository-architecture.md', 'Frontend/Vue/vue-typescript-clean-code-standards.md', 'Frontend/Vue/vue-typescript-repository-architecture.md',
-      'Database/README.md', 'Database/Mysql/mysql-database-standard.md', 'Database/Mysql/mysql-lms-naming-and-schema-standard.md', 'Database/PostgreSQL/postgresql-database-standard.md', 'Database/PostgreSQL/postgresql-lms-naming-and-schema-standard.md', 'Database/Redis/redis-database-standard.md', 'Database/Supabase/supabase-database-standard.md',
-      'Backend/universal-api-contract.md',
+      'readme.md',
+      'Frontend/React/frontend-react.js-typescript-clean-code-standards.md', 'Frontend/React/frontend-react.js-typescript-repository-architecture.md', 'Frontend/React/frontend-react-typescript-consume-api-standard.md', 'Frontend/Vue/vue-typescript-clean-code-standards.md', 'Frontend/Vue/vue-typescript-repository-architecture.md', 'Frontend/Vue/vue-typescript-consume-api-standard.md',
+      'Database/Mysql/mysql-database-standard.md', 'Database/Mysql/mysql-lms-naming-and-schema-standard.md', 'Database/PostgreSQL/postgresql-database-standard.md', 'Database/PostgreSQL/postgresql-lms-naming-and-schema-standard.md', 'Database/Redis/redis-database-standard.md', 'Database/Supabase/supabase-database-standard.md',
+      'Backend/Elysia/LayeredArchitecture/universal-api-contract.md', 'Backend/Elysia/ModularArchitecture/universal-api-contract.md', 'Backend/Express/LayeredArchitecture/universal-api-contract.md', 'Backend/Express/ModularArchitecture/universal-api-contract.md', 'Backend/Hono/LayeredArchitecture/universal-api-contract.md', 'Backend/Hono/ModularArchitecture/universal-api-contract.md', 'Backend/Laravel/LayeredArchitecture/universal-api-contract.md', 'Backend/Laravel/ModularArchitecture/universal-api-contract.md',
       'Backend/Elysia/LayeredArchitecture/pattern-repository-package-by-layer.md', 'Backend/Elysia/LayeredArchitecture/unit-testing.md', 'Backend/Elysia/LayeredArchitecture/migration-seeder.md', 'Backend/Elysia/LayeredArchitecture/documentation-api-ui.md', 'Backend/Elysia/LayeredArchitecture/standart-orm.md', 'Backend/Elysia/LayeredArchitecture/standart-auth.md', 'Backend/Elysia/LayeredArchitecture/clean-code.md', 'Backend/Elysia/LayeredArchitecture/runtime-standart.md',
       'Backend/Elysia/ModularArchitecture/unit-testing.md', 'Backend/Elysia/ModularArchitecture/migration-seeder.md', 'Backend/Elysia/ModularArchitecture/documentation-api-ui.md', 'Backend/Elysia/ModularArchitecture/standart-orm.md', 'Backend/Elysia/ModularArchitecture/standart-auth.md', 'Backend/Elysia/ModularArchitecture/pattern-repository-package-by-feature.md', 'Backend/Elysia/ModularArchitecture/clean-code.md', 'Backend/Elysia/ModularArchitecture/runtime-standart.md',
 'Backend/Express/LayeredArchitecture/pattern-repository-package-by-layer.md', 'Backend/Express/LayeredArchitecture/unit-testing.md', 'Backend/Express/LayeredArchitecture/migration-seeder.md', 'Backend/Express/LayeredArchitecture/documentation-api-ui.md', 'Backend/Express/LayeredArchitecture/standart-orm.md', 'Backend/Express/LayeredArchitecture/standart-auth.md', 'Backend/Express/LayeredArchitecture/clean-code.md', 'Backend/Express/LayeredArchitecture/runtime-standart.md', 'Backend/Express/ModularArchitecture/unit-testing.md', 'Backend/Express/ModularArchitecture/migration-seeder.md', 'Backend/Express/ModularArchitecture/documentation-api-ui.md', 'Backend/Express/ModularArchitecture/standart-orm.md', 'Backend/Express/ModularArchitecture/standart-auth.md', 'Backend/Express/ModularArchitecture/pattern-repository-package-by-feature.md', 'Backend/Express/ModularArchitecture/clean-code.md', 'Backend/Express/ModularArchitecture/runtime-standart.md',
@@ -152,8 +152,23 @@
          article.innerHTML = `<div class="empty">${message}</div>`;
        }
      }
-    search.oninput=event=>renderTree(event.target.value); renderTree();
-    const initial=decodeURIComponent(location.hash.slice(1)); if(files.includes(initial)) openFile(initial);
+     search.oninput=event=>renderTree(event.target.value);
+     renderTree();
+     const initial = decodeURIComponent(location.hash.slice(1));
+     if (files.includes(initial)) {
+       openFile(initial);
+       setTimeout(() => {
+         const parts = initial.split('/');
+         let container = tree;
+         for (let index = 0; index < parts.length - 1; index += 1) {
+           const folder = [...container.children].find(item => item.classList.contains('tree-group'))?.querySelector('.folder');
+           if (!folder) break;
+           const children = folder.nextElementSibling;
+           if (children.hidden) folder.click();
+           container = children;
+         }
+       }, 0);
+     }
   </script>
 </body>
 </html>

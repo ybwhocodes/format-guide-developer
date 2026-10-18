@@ -111,7 +111,7 @@ pattern-repository-package-by-feature.md
 Selalu mulai dari:
 
 ```text
-Backend/universal-api-contract.md
+Backend/{Framework}/universal-api-contract.md
 ```
 
 Dokumen ini mengatur naming endpoint, HTTP status, response JSON, error code, pagination, query parameter, versioning, dan idempotency.
@@ -147,7 +147,7 @@ Pilih satu pendekatan utama:
 ### API
 
 ```text
-Backend/universal-api-contract.md
+Backend/{Framework}/universal-api-contract.md
 ```
 
 Gunakan untuk semua service backend. Aturan utama: noun plural pada endpoint, HTTP status sesuai kondisi, response konsisten, error code eksplisit, pagination terdefinisi, API versioning, dan idempotency untuk transaksi.
@@ -167,6 +167,15 @@ Gunakan untuk memilih Bun.js atau Node.js, package manager, scripts, test runner
 ```
 
 Gunakan saat menentukan akses database, model/schema, query convention, transaction, dan batasan repository.
+
+### Consume API
+
+```text
+Frontend/React/frontend-react-typescript-consume-api-standard.md
+Frontend/Vue/vue-typescript-consume-api-standard.md
+```
+
+Gunakan dokumen sesuai framework frontend untuk aturan API client, typed service, server state, loading, empty, error, pagination, retry, mutation, cancellation, dan security. Kontrak response tetap mengikuti `Backend/{Framework}/universal-api-contract.md`.
 
 ### Authentication
 
